@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Raio do Guindaste (Aproximado)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: black;
+    color: white;
+    text-align: center;
+}
+video {
+    width: 100%;
+    height: auto;
+}
+.overlay {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 10px;
+}
+input {
+    width: 80px;
+}
+.crosshair {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    transform: translate(-50%, -50%);
+}
+.crosshair:before,
+.crosshair:after {
+    content: "";
+    position: absolute;
+    background: red;
+}
+.crosshair:before {
+    width: 40px;
+    height: 2px;
+    top: 19px;
+    left: 0;
+}
+.crosshair:after {
+    width: 2px;
+    height: 40px;
+    left: 19px;
+    top: 0;
+}
+</style>
+</head>
+
+<body>
+
+<video id="camera" autoplay playsinline></video>
+<div class="crosshair"></div>
+
+<div class="overlay">
+    <div>Inclinação: <span id="tilt">0</span>°</div>
+    <div>Bússola: <span id="compass">0</span>°</div>
+    <div>
+        Altura do celular (m): 
+        <input id="altura" type="number" value="1.6" step="0.1">
+    </div>
+    <div>
+        <strong>Raio estimado:</strong><br>
+        <span id="distancia">0</span> m
+    </div>
+</div>
+
+<script>
+// CAMERA
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+.then(stream => {
+    document.getElementById("camera").srcObject = stream;
+})
+.catch(err => alert("Erro ao abrir câmera: " + err));
+
+// SENSORES
+let tilt = 0;
+let compass = 0;
+
+window.addEventListener("deviceorientationabsolute", e => {
+    if (e.beta !== null) {
+        tilt = e.beta;
+        document.getElementById("tilt").innerText = tilt.toFixed(1);
+    }
+    if (e.alpha !== null) {
+        compass = e.alpha;
+        document.getElementById("compass").innerText = compass.toFixed(1);
+    }
+
+    calcular();
+});
+
+function calcular() {
+    let altura = parseFloat(document.getElementById("altura").value);
+    let angulo = Math.abs(tilt);
+
+    if (angulo > 0 && angulo < 89) {
+        let rad = angulo * Math.PI / 180;
+        let distancia = altura / Math.tan(rad);
+        document.getElementById("distancia").innerText = distancia.toFixed(2);
+    }
+}
+</script>
+
+</body>
+</html>
